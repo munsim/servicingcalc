@@ -10,7 +10,7 @@ body {
 .App {
   position: absolute;
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
@@ -18,7 +18,7 @@ body {
 }
 
 .maindiv {
-  width: 90vw;
+  width: 95vw;
 }
 
 h3 {
