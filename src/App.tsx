@@ -493,7 +493,7 @@ function App() {
                   }
                 />
                 <FormHelperText sx={helpertext}>
-                  SPOUSE/PARTNER AVERAGE TAKE HOME PAY
+                  Spouse/Partner Average Take Home Pay
                 </FormHelperText>
               </FormControl>
             )}
@@ -661,8 +661,8 @@ function App() {
                 This estimate based on a 60 month loan term with an interest
                 rate of{" "}
               </p>
-              <p style={{ fontSize: "3em" }}>9.95% </p>
-              <p style={{ fontSize: "2em" }}> p.a.</p>
+              <p style={{ fontSize: "2.5em" }}>9.95% </p>
+              <p style={{ fontSize: "1.8em" }}> p.a.</p>
             </div>
             <p>Disclaimer: Affordability Calculator</p>
             <h3>

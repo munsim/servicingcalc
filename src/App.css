@@ -24,7 +24,7 @@ body {
 }
 
 h3 {
-  font-size: 1.2em;
+  font-size: 1em;
   line-height: 25px;
   text-transform: initial;
   color: white;
@@ -39,13 +39,13 @@ h1 {
 
 h4 {
   font-size: 18px;
-  line-height: 32px;
+  line-height: 30px;
   text-transform: initial;
   color: white;
 }
 p {
   color: white;
-  font-size: 22px;
+  font-size: 20px;
   opacity: 1;
 }
 
