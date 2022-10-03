@@ -493,7 +493,7 @@ function App() {
                   }
                 />
                 <FormHelperText sx={helpertext}>
-                  Spouse/Partner Average Take Home Pay
+                  Spouse Take Home Pay
                 </FormHelperText>
               </FormControl>
             )}
