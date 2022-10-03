@@ -29,28 +29,44 @@ import {
   outlinecss,
   button,
 } from "./styles/styles.js";
-export const url = "http://localhost:4000";
+export const url = "https://bmwservicingcheck.herokuapp.com/";
 
 function App() {
   const [relation, setrelation] = useState("blank");
   const [dependents, setdependents] = useState("");
+  const [adjdependents, setadjdependents] = useState("");
   const [postcode, setpostcode] = useState<any>("");
   const [netmi, setnetmi] = useState<any>("");
   const [netmispouse, setnetmispouse] = useState<any>("");
   const [otherincome, setotherincome] = useState<any>("");
-
+  const [region, setregion] = useState<string>("");
   const [mortgageexp, setmortgageexp] = useState<any>("");
   const [rentexp, setrentexp] = useState<any>("");
   const [cclimit, setcclimit] = useState<any>("");
   const [loanreps, setloanreps] = useState<any>("");
   const [gleexp, setgleexp] = useState<any>("");
-
+  const [pcexist, setpcexist] = useState<boolean>(false);
   const [hidespouse, sethidespouse] = useState<boolean>(true);
+  const [combo, setcombo] = useState<string>("");
+  const [hesdata, sethesdata] = useState<any[]>([]);
+  const [regsdata, setregsdata] = useState<any[]>([]);
+  const [pcerror, setpcerror] = useState<string>("");
+  const [hes, sethes] = useState<string>("");
+  const [birelation, setbirelation] = useState<string>("");
+  const [loansize, setloansize] = useState<number>(0);
+  const [npvsarray, setnpvsarray] = useState<{ value: number }[]>([]);
 
   const handlerelation = (e: any) => {
     setrelation(e.target.value);
   };
+  const [butcolor1, setbutcolor1] = useState<string>("rgb(25,118,210,0.8)");
 
+  const [butcolor2, setbutcolor2] = useState<string>("rgb(128,128,128,0.6)");
+
+  const [butcolor3, setbutcolor3] = useState<string>("rgb(128,128,128,0.6)");
+
+  const [frequency, setfrequency] = useState<string>("Per Month");
+  const [totalamount, settotalamount] = useState<number>(0);
   const handledependents = (e: any) => {
     setdependents(e.target.value);
   };
@@ -84,15 +100,52 @@ function App() {
   };
 
   useEffect(() => {
+    if (birelation === "Single" && dependents === "0") {
+      setadjdependents("0");
+    } else if (birelation === "Single" && dependents === "1") {
+      setadjdependents("1");
+    } else if (birelation === "Single" && dependents === "2") {
+      setadjdependents("1");
+    } else if (birelation === "Single" && dependents === "3") {
+      setadjdependents("1");
+    } else if (birelation === "Single" && dependents === "4") {
+      setadjdependents("1");
+    } else if (birelation === "Couple" && dependents === "0") {
+      setadjdependents("0");
+    } else if (birelation === "Couple" && dependents === "1") {
+      setadjdependents("1");
+    } else if (birelation === "Couple" && dependents === "2") {
+      setadjdependents("2");
+    } else if (birelation === "Couple" && dependents === "3") {
+      setadjdependents("3");
+    } else if (birelation === "Couple" && dependents === "4") {
+      setadjdependents("3");
+    }
+  }, [dependents, birelation]);
+
+  useEffect(() => {
     const fetchHesData = async () => {
-      const response = await fetch(`${url}/`);
-      const newData = await response.json();
+      const response = await fetch(`${url}/data`);
+      const hesdata = await response.json();
 
       if (response.ok) {
-        console.log(newData);
+        sethesdata(hesdata);
       }
     };
     fetchHesData();
+  }, []);
+
+  useEffect(() => {
+    const fetchHesData2 = async () => {
+      const response = await fetch(`${url}/regs`);
+      const regsdata = await response.json();
+
+      if (response.ok) {
+        setregsdata(regsdata);
+      }
+    };
+    fetchHesData2();
+
     console.log("rerender");
   }, []);
 
@@ -101,15 +154,227 @@ function App() {
       relation === "Single" ||
       relation === "Separated" ||
       relation === "Divorced" ||
-      relation === "Widowed" ||
-      relation === "blank"
+      relation === "Widowed"
     ) {
+      sethidespouse(true);
+      setbirelation("Single");
+    } else if (relation === "blank") {
       sethidespouse(true);
     } else {
       sethidespouse(false);
+      setbirelation("Couple");
     }
   }, [relation]);
 
+  useEffect(() => {
+    if (postcode.length < 4) {
+      setpcerror("");
+    }
+  }, [postcode]);
+
+  useEffect(() => {
+    if (regsdata) {
+      let check = regsdata.some(
+        (item: any) => Number(item.postcode) === Number(postcode)
+      );
+      setpcexist(check);
+
+      if (pcexist === true && postcode.length === 4) {
+        const pcmatch = regsdata.find(
+          (item: any) => item.postcode === postcode
+        );
+        setregion(pcmatch.region);
+
+        setpcerror("");
+      } else if (pcexist === false && postcode.length === 4) {
+        setpcerror(" - invalid postcode");
+      }
+    }
+  }, [postcode, pcexist]);
+
+  useEffect(() => {
+    if (
+      birelation &&
+      dependents &&
+      region &&
+      hesdata &&
+      regsdata &&
+      adjdependents
+    ) {
+      setcombo(`${region}${birelation}${adjdependents}`);
+    }
+  }, [relation, dependents, region, birelation, adjdependents]);
+
+  try {
+    useEffect(() => {
+      if (combo && hesdata && adjdependents && birelation) {
+        const hesmatch = hesdata.find((item: any) => item.combo === combo);
+        sethes(hesmatch?.hes);
+      }
+    }, [combo]);
+  } catch (error) {
+    alert("Plese, refresh ");
+  }
+
+  const calculate = () => {
+    if (
+      postcode.length === 0 ||
+      netmi.length === 0 ||
+      otherincome.length === 0 ||
+      mortgageexp.length === 0 ||
+      rentexp.length === 0 ||
+      cclimit.length === 0 ||
+      loanreps.length === 0 ||
+      gleexp.length === 0 ||
+      dependents.length === 0 ||
+      relation === "blank"
+    ) {
+      alert("Please, ensure all boxes are completed");
+    }
+    setloansize(
+      (Number(netmi) +
+        Number(netmispouse) * 0.8 +
+        Number(otherincome) * 0.8 -
+        Number(mortgageexp) -
+        Number(rentexp) -
+        Number(cclimit) * 0.038 -
+        Number(loanreps) -
+        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
+        0.95
+    );
+
+    let array = new Array(Number(60)).fill({
+      value:
+        (Number(netmi) +
+          Number(netmispouse) * 0.8 +
+          Number(otherincome) * 0.8 -
+          Number(mortgageexp) -
+          Number(rentexp) -
+          Number(cclimit) * 0.038 -
+          Number(loanreps) -
+          (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
+        0.95,
+    });
+    settotalamount(
+      array
+        .map((payment, index) => ({
+          value:
+            ((Number(netmi) +
+              Number(netmispouse) * 0.8 +
+              Number(otherincome) * 0.8 -
+              Number(mortgageexp) -
+              Number(rentexp) -
+              Number(cclimit) * 0.038 -
+              Number(loanreps) -
+              (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
+              0.95) /
+            (1 + 9.95 / 1200) ** (index + 1),
+        }))
+        .reduce((accum, item) => accum + Number(item.value), 0)
+    );
+  };
+
+  const refresh = () => {
+    setpostcode("");
+    setrelation("");
+    setdependents("");
+    setadjdependents("");
+    setnetmispouse("");
+    setnetmi("");
+    setotherincome("");
+    setregion("");
+    setmortgageexp("");
+    setrentexp("");
+    setcclimit("");
+    setloanreps("");
+    setgleexp("");
+    sethidespouse(false);
+    setcombo("");
+    setpcerror("");
+    setbirelation("");
+    setloansize(0);
+    setbutcolor2("rgb(128,128,128,0.6)");
+    setbutcolor1("rgb(25,118,210,0.8)");
+    setbutcolor3("rgb(128,128,128,0.6)");
+    setfrequency("Per Month");
+    settotalamount(0);
+  };
+
+  /*   useEffect(() => {
+
+  }, [loansize]); */
+
+  const but1 = () => {
+    if (butcolor1 === "rgb(25,118,210,0.8)") {
+      setbutcolor2("rgb(128,128,128,0.6)");
+      setbutcolor3("rgb(128,128,128,0.6)");
+    } else if (butcolor1 === "rgb(128,128,128,0.6)") {
+      setbutcolor2("rgb(128,128,128,0.6)");
+      setbutcolor1("rgb(25,118,210,0.8)");
+      setbutcolor3("rgb(128,128,128,0.6)");
+    }
+    setfrequency("Per Month");
+    setloansize(
+      (Number(netmi) +
+        Number(netmispouse) * 0.8 +
+        Number(otherincome) * 0.8 -
+        Number(mortgageexp) -
+        Number(rentexp) -
+        Number(cclimit) * 0.038 -
+        Number(loanreps) -
+        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
+        0.95
+    );
+  };
+
+  const but2 = () => {
+    if (butcolor2 === "rgb(25,118,210,0.8)") {
+      setbutcolor1("rgb(128,128,128,0.6)");
+      setbutcolor3("rgb(128,128,128,0.6)");
+    } else if (butcolor2 === "rgb(128,128,128,0.6)") {
+      setbutcolor1("rgb(128,128,128,0.6)");
+      setbutcolor2("rgb(25,118,210,0.8)");
+      setbutcolor3("rgb(128,128,128,0.6)");
+    }
+    setfrequency("Per Fortnight");
+    setloansize(
+      (((Number(netmi) +
+        Number(netmispouse) * 0.8 +
+        Number(otherincome) * 0.8 -
+        Number(mortgageexp) -
+        Number(rentexp) -
+        Number(cclimit) * 0.038 -
+        Number(loanreps) -
+        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
+        0.95) /
+        4.333333) *
+        2
+    );
+  };
+
+  const but3 = () => {
+    if (butcolor3 === "rgb(25,118,210,0.8)") {
+      setbutcolor2("rgb(128,128,128,0.6)");
+      setbutcolor3("rgb(128,128,128,0.6)");
+    } else if (butcolor3 === "rgb(128,128,128,0.6)") {
+      setbutcolor1("rgb(128,128,128,0.6)");
+      setbutcolor3("rgb(25,118,210,0.8)");
+      setbutcolor2("rgb(128,128,128,0.6)");
+    }
+    setfrequency("Per Week");
+    setloansize(
+      ((Number(netmi) +
+        Number(netmispouse) * 0.8 +
+        Number(otherincome) * 0.8 -
+        Number(mortgageexp) -
+        Number(rentexp) -
+        Number(cclimit) * 0.038 -
+        Number(loanreps) -
+        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
+        0.95) /
+        4.3333333333
+    );
+  };
   return (
     <div className="App">
       <div className="maindiv">
@@ -132,7 +397,7 @@ function App() {
             style={{
               display: "flex",
               flexDirection: "column",
-              width: "40vw",
+              width: "30vw",
               justifyContent: "space-around",
 
               alignContent: "center",
@@ -141,12 +406,15 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 sx={outlinecss}
+                type="number"
                 id="outlined-adornment-amount"
                 value={postcode}
                 onChange={handlepostcode}
                 inputProps={{ maxLength: 4 }}
               />
-              <FormHelperText sx={helpertext}>Enter postcode</FormHelperText>
+              <FormHelperText sx={helpertext}>
+                Enter postcode <span style={{ color: "red" }}>{pcerror}</span>{" "}
+              </FormHelperText>
             </FormControl>
 
             <FormControl>
@@ -197,6 +465,7 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 style={outlinecss}
+                type="number"
                 value={netmi}
                 onChange={handlenetmi}
                 name="numberformat"
@@ -216,6 +485,7 @@ function App() {
                 <OutlinedInput
                   style={outlinecss}
                   value={netmispouse}
+                  type="number"
                   onChange={handlenetmispouse}
                   name="numberformat"
                   id="outlined-adornment-amount"
@@ -231,6 +501,7 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 style={outlinecss}
+                type="number"
                 value={otherincome}
                 onChange={handleotherincome}
                 name="numberformat"
@@ -248,7 +519,7 @@ function App() {
             style={{
               display: "flex",
               flexDirection: "column",
-              width: "40vw",
+              width: "30vw",
               justifyContent: "space-around",
               alignContent: "center",
             }}
@@ -256,6 +527,7 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 style={outlinecss}
+                type="number"
                 value={mortgageexp}
                 onChange={handlemortgageexp}
                 name="numberformat"
@@ -271,6 +543,7 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 style={outlinecss}
+                type="number"
                 value={rentexp}
                 onChange={handlerentexp}
                 name="numberformat"
@@ -286,6 +559,7 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 style={outlinecss}
+                type="number"
                 value={cclimit}
                 onChange={handlecclimit}
                 name="numberformat"
@@ -302,6 +576,7 @@ function App() {
               <OutlinedInput
                 style={outlinecss}
                 value={loanreps}
+                type="number"
                 onChange={handleloanreps}
                 name="numberformat"
                 id="outlined-adornment-amount"
@@ -316,6 +591,7 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 style={outlinecss}
+                type="number"
                 value={gleexp}
                 onChange={handlegleexp}
                 name="numberformat"
@@ -329,22 +605,89 @@ function App() {
               </FormHelperText>
             </FormControl>
           </div>
+          <div style={{ width: "30vw" }}>
+            <h3>YOU WILL BE ABLE TO BORROW:</h3>
+            <p style={{ fontSize: "2.2em" }}>
+              ${Number(loansize.toFixed(0)) < 0 ? 0 : loansize.toFixed(0)}{" "}
+              {frequency}
+            </p>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <Button
+                onClick={() => {
+                  but1();
+                }}
+                sx={{
+                  color: "white",
+                  backgroundColor: butcolor1,
+                  border: "1px solid gray",
+                }}
+              >
+                Monthly
+              </Button>
+              <Button
+                onClick={() => {
+                  but2();
+                }}
+                sx={{
+                  color: "white",
+                  backgroundColor: butcolor2,
+                  border: "1px solid gray",
+                }}
+              >
+                Fortnightly
+              </Button>
+              <Button
+                onClick={() => {
+                  but3();
+                }}
+                sx={{
+                  color: "white",
+                  backgroundColor: butcolor3,
+                  border: "1px solid gray",
+                }}
+              >
+                Weekly
+              </Button>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <p>
+                This estimate based on a 60 month loan term with an interest
+                rate of{" "}
+              </p>
+              <p style={{ fontSize: "3em" }}>9.95% </p>
+              <p style={{ fontSize: "2em" }}> p.a.</p>
+            </div>
+            <p>Disclaimer: Affordability Calculator</p>
+            <h3>
+              Your total amount $
+              {Number(totalamount.toFixed(0)) < 0 ? 0 : totalamount.toFixed(0)}
+            </h3>
+          </div>
         </div>
         <div className="buttondiv">
           <Button
             sx={button}
             variant="contained"
             onClick={() => {
-              alert("clicked");
+              calculate();
             }}
           >
             CALCULATE
           </Button>
+
           <Button
             sx={button}
             variant="contained"
             onClick={() => {
-              alert("clicked");
+              refresh();
             }}
           >
             REFRESH

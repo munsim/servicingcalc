@@ -18,11 +18,18 @@ body {
 }
 
 .maindiv {
-  width: 80vw;
+  width: 90vw;
 }
 
 h3 {
   font-size: 24px;
+  line-height: 32px;
+  text-transform: initial;
+  color: white;
+}
+
+h4 {
+  font-size: 18px;
   line-height: 32px;
   text-transform: initial;
   color: white;
