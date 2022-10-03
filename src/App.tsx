@@ -380,7 +380,7 @@ function App() {
       <div className="maindiv">
         <div className="line"></div>
         <div>
-          <h3>HOW MUCH CAN I BORROW?</h3>
+          <h1>HOW MUCH CAN I BORROW?</h1>
           <p>
             To find out, we need some information about you and your income and
             expenses
@@ -406,7 +406,6 @@ function App() {
             <FormControl sx={hemfields}>
               <OutlinedInput
                 sx={outlinecss}
-                type="number"
                 id="outlined-adornment-amount"
                 value={postcode}
                 onChange={handlepostcode}

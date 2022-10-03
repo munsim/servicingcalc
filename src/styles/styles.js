@@ -1,7 +1,7 @@
     const hemfields = {
-    width:"400px",
-    height:"50px",
-    marginTop:"35px",
+    width:"20vw",
+    height:"35px",
+    marginTop:"15px",
     marginLeft:"5px",
     backgroundColor:"white",
     borderRadius:"5px",
@@ -16,14 +16,14 @@
      }
 
     const hemfieldstest = {
-    width:"400px", 
+    width:"20vw", 
     marginTop:"25px",
     marginLeft:"5px",
     backgroundColor:"white",
      }
 
      const outlinecss = {
-        height: "50px" 
+        height: "35px" 
      }
      const button={
         width:"12vw",
