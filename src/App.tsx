@@ -29,7 +29,7 @@ import {
   outlinecss,
   button,
 } from "./styles/styles.js";
-export const url = "https://bmwservicingcheck.herokuapp.com/";
+export const url = "https://bmwservicingcheck.herokuapp.com";
 
 function App() {
   const [relation, setrelation] = useState("blank");
