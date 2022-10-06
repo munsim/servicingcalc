@@ -36,15 +36,15 @@ function App() {
   const [dependents, setdependents] = useState("");
   const [adjdependents, setadjdependents] = useState("");
   const [postcode, setpostcode] = useState<any>("");
-  const [netmi, setnetmi] = useState<any>("");
-  const [netmispouse, setnetmispouse] = useState<any>("");
-  const [otherincome, setotherincome] = useState<any>("");
+  const [netmi, setnetmi] = useState<number>(0);
+  const [netmispouse, setnetmispouse] = useState<number>(0);
+  const [otherincome, setotherincome] = useState<number>(0);
   const [region, setregion] = useState<string>("");
-  const [mortgageexp, setmortgageexp] = useState<any>("");
-  const [rentexp, setrentexp] = useState<any>("");
-  const [cclimit, setcclimit] = useState<any>("");
-  const [loanreps, setloanreps] = useState<any>("");
-  const [gleexp, setgleexp] = useState<any>("");
+  const [mortgageexp, setmortgageexp] = useState<number>(0);
+  const [rentexp, setrentexp] = useState<number>(0);
+  const [cclimit, setcclimit] = useState<number>(0);
+  const [loanreps, setloanreps] = useState<number>(0);
+  const [gleexp, setgleexp] = useState<number>(0);
   const [pcexist, setpcexist] = useState<boolean>(false);
   const [hidespouse, sethidespouse] = useState<boolean>(true);
   const [combo, setcombo] = useState<string>("");
@@ -55,7 +55,10 @@ function App() {
   const [birelation, setbirelation] = useState<string>("");
   const [loansize, setloansize] = useState<number>(0);
   const [npvsarray, setnpvsarray] = useState<{ value: number }[]>([]);
-
+  const [maxrep, setmaxrep] = useState<number>(0);
+  const [maxrepfn, setmaxrepfn] = useState<number>(0);
+  const [maxrepw, setmaxrepw] = useState<number>(0);
+  const [loading, setloading] = useState<boolean>(true);
   const handlerelation = (e: any) => {
     setrelation(e.target.value);
   };
@@ -65,7 +68,6 @@ function App() {
 
   const [butcolor3, setbutcolor3] = useState<string>("rgb(128,128,128,0.6)");
 
-  const [frequency, setfrequency] = useState<string>("Per Month");
   const [totalamount, settotalamount] = useState<number>(0);
   const handledependents = (e: any) => {
     setdependents(e.target.value);
@@ -130,6 +132,7 @@ function App() {
 
       if (response.ok) {
         sethesdata(hesdata);
+        setloading(false);
       }
     };
     fetchHesData();
@@ -216,21 +219,7 @@ function App() {
     alert("Plese, refresh ");
   }
 
-  const calculate = () => {
-    if (
-      postcode.length === 0 ||
-      netmi.length === 0 ||
-      otherincome.length === 0 ||
-      mortgageexp.length === 0 ||
-      rentexp.length === 0 ||
-      cclimit.length === 0 ||
-      loanreps.length === 0 ||
-      gleexp.length === 0 ||
-      dependents.length === 0 ||
-      relation === "blank"
-    ) {
-      alert("Please, ensure all boxes are completed");
-    }
+  useEffect(() => {
     setloansize(
       (Number(netmi) +
         Number(netmispouse) * 0.8 +
@@ -242,139 +231,80 @@ function App() {
         (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
         0.95
     );
+  }, [
+    netmi,
+    netmispouse,
+    otherincome,
+    mortgageexp,
+    rentexp,
+    cclimit,
+    loanreps,
+    gleexp,
+    hes,
+  ]);
 
-    let array = new Array(Number(60)).fill({
-      value:
+  const calculate = () => {
+    if (
+      Number(loansize) >
+      (Number(netmi) + Number(netmispouse) * 0.8 + Number(otherincome) * 0.8) *
+        0.25
+    ) {
+      setmaxrep(
         (Number(netmi) +
           Number(netmispouse) * 0.8 +
-          Number(otherincome) * 0.8 -
-          Number(mortgageexp) -
-          Number(rentexp) -
-          Number(cclimit) * 0.038 -
-          Number(loanreps) -
-          (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
-        0.95,
+          Number(otherincome) * 0.8) *
+          0.25
+      );
+    } else {
+      setmaxrep(Number(loansize));
+    }
+  };
+
+  useEffect(() => {
+    let array = new Array(Number(60)).fill({
+      value: Number(maxrep),
     });
+
+    console.log(array);
     settotalamount(
-      array
+      new Array(Number(60))
+        .fill({
+          value: Number(maxrep),
+        })
         .map((payment, index) => ({
-          value:
-            ((Number(netmi) +
-              Number(netmispouse) * 0.8 +
-              Number(otherincome) * 0.8 -
-              Number(mortgageexp) -
-              Number(rentexp) -
-              Number(cclimit) * 0.038 -
-              Number(loanreps) -
-              (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
-              0.95) /
-            (1 + 9.95 / 1200) ** (index + 1),
+          value: maxrep / (1 + 9.95 / 1200) ** (index + 1),
         }))
         .reduce((accum, item) => accum + Number(item.value), 0)
     );
-  };
+    console.log(totalamount);
+  }, [maxrep]);
 
   const refresh = () => {
     setpostcode("");
     setrelation("");
     setdependents("");
     setadjdependents("");
-    setnetmispouse("");
-    setnetmi("");
-    setotherincome("");
+    setnetmispouse(0);
+    setnetmi(0);
+    setotherincome(0);
     setregion("");
-    setmortgageexp("");
-    setrentexp("");
-    setcclimit("");
-    setloanreps("");
-    setgleexp("");
+    setmortgageexp(0);
+    setrentexp(0);
+    setcclimit(0);
+    setloanreps(0);
+    setgleexp(0);
     sethidespouse(false);
     setcombo("");
     setpcerror("");
     setbirelation("");
     setloansize(0);
-    setbutcolor2("rgb(128,128,128,0.6)");
-    setbutcolor1("rgb(25,118,210,0.8)");
-    setbutcolor3("rgb(128,128,128,0.6)");
-    setfrequency("Per Month");
+    setmaxrep(0);
+    setmaxrepfn(0);
+    setmaxrepw(0);
+
     settotalamount(0);
   };
 
-  /*   useEffect(() => {
-
-  }, [loansize]); */
-
-  const but1 = () => {
-    if (butcolor1 === "rgb(25,118,210,0.8)") {
-      setbutcolor2("rgb(128,128,128,0.6)");
-      setbutcolor3("rgb(128,128,128,0.6)");
-    } else if (butcolor1 === "rgb(128,128,128,0.6)") {
-      setbutcolor2("rgb(128,128,128,0.6)");
-      setbutcolor1("rgb(25,118,210,0.8)");
-      setbutcolor3("rgb(128,128,128,0.6)");
-    }
-    setfrequency("Per Month");
-    setloansize(
-      (Number(netmi) +
-        Number(netmispouse) * 0.8 +
-        Number(otherincome) * 0.8 -
-        Number(mortgageexp) -
-        Number(rentexp) -
-        Number(cclimit) * 0.038 -
-        Number(loanreps) -
-        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
-        0.95
-    );
-  };
-
-  const but2 = () => {
-    if (butcolor2 === "rgb(25,118,210,0.8)") {
-      setbutcolor1("rgb(128,128,128,0.6)");
-      setbutcolor3("rgb(128,128,128,0.6)");
-    } else if (butcolor2 === "rgb(128,128,128,0.6)") {
-      setbutcolor1("rgb(128,128,128,0.6)");
-      setbutcolor2("rgb(25,118,210,0.8)");
-      setbutcolor3("rgb(128,128,128,0.6)");
-    }
-    setfrequency("Per Fortnight");
-    setloansize(
-      (((Number(netmi) +
-        Number(netmispouse) * 0.8 +
-        Number(otherincome) * 0.8 -
-        Number(mortgageexp) -
-        Number(rentexp) -
-        Number(cclimit) * 0.038 -
-        Number(loanreps) -
-        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
-        0.95) /
-        4.333333) *
-        2
-    );
-  };
-
-  const but3 = () => {
-    if (butcolor3 === "rgb(25,118,210,0.8)") {
-      setbutcolor2("rgb(128,128,128,0.6)");
-      setbutcolor3("rgb(128,128,128,0.6)");
-    } else if (butcolor3 === "rgb(128,128,128,0.6)") {
-      setbutcolor1("rgb(128,128,128,0.6)");
-      setbutcolor3("rgb(25,118,210,0.8)");
-      setbutcolor2("rgb(128,128,128,0.6)");
-    }
-    setfrequency("Per Week");
-    setloansize(
-      ((Number(netmi) +
-        Number(netmispouse) * 0.8 +
-        Number(otherincome) * 0.8 -
-        Number(mortgageexp) -
-        Number(rentexp) -
-        Number(cclimit) * 0.038 -
-        Number(loanreps) -
-        (Number(gleexp) > Number(hes) ? Number(gleexp) : Number(hes))) *
-        0.95) /
-        4.3333333333
-    );
-  };
   return (
     <div className="App">
       <div className="maindiv">
@@ -403,6 +333,7 @@ function App() {
               alignContent: "center",
             }}
           >
+            {" "}
             <FormControl sx={hemfields}>
               <OutlinedInput
                 sx={outlinecss}
@@ -412,10 +343,14 @@ function App() {
                 inputProps={{ maxLength: 4 }}
               />
               <FormHelperText sx={helpertext}>
-                Enter postcode <span style={{ color: "red" }}>{pcerror}</span>{" "}
+                Enter postcode{" "}
+                <span style={{ color: "red" }}>
+                  {" "}
+                  {loading ? `Loading postcodes..` : ""}
+                </span>{" "}
+                <span style={{ color: "red" }}>{pcerror}</span>{" "}
               </FormHelperText>
             </FormControl>
-
             <FormControl>
               <Select
                 sx={hemfields}
@@ -606,12 +541,76 @@ function App() {
           </div>
           <div style={{ width: "30vw" }}>
             <h3>YOU WILL BE ABLE TO BORROW:</h3>
-            <p style={{ fontSize: "2.2em" }}>
-              ${Number(loansize.toFixed(0)) < 0 ? 0 : loansize.toFixed(0)}{" "}
-              {frequency}
+            <p style={{ fontSize: "2em" }}>
+              ${Number(maxrep.toFixed(0)) < 0 ? 0 : maxrep.toFixed(0)} Per Month
             </p>
-            <div style={{ display: "flex", flexDirection: "row" }}>
-              <Button
+            <p style={{ fontSize: "2em" }}>
+              $
+              {Number(((maxrep / 4.3333333333333) * 2).toFixed(0)) < 0
+                ? 0
+                : Number((maxrep / 4.3333333333333) * 2).toFixed(0)}{" "}
+              Per Fortnight
+            </p>
+            <p style={{ fontSize: "2em" }}>
+              $
+              {Number((maxrep / 4.3333333333333333).toFixed(0)) < 0
+                ? 0
+                : (maxrep / 4.3333333333333333).toFixed(0)}{" "}
+              Per Week
+            </p>
+            <div style={{ display: "flex", flexDirection: "row" }}></div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <p style={{ textAlign: "right", marginRight: "35px" }}>
+                This estimate based on a 60 month loan term with an interest
+                rate of:{" "}
+              </p>
+              <p style={{ fontSize: "2.5em" }}>9.95% </p>
+              <p style={{ fontSize: "1.8em", marginLeft: "5px" }}> p.a.</p>
+            </div>
+            <p>Disclaimer: Affordability Calculator</p>
+            <h3>
+              Your total loan amount is $
+              {Number(totalamount.toFixed(0)) < 0 ? 0 : totalamount.toFixed(0)}
+            </h3>
+          </div>
+        </div>
+        <div className="buttondiv">
+          <Button
+            sx={button}
+            variant="contained"
+            onClick={() => {
+              calculate();
+            }}
+          >
+            CALCULATE
+          </Button>
+
+          <Button
+            sx={button}
+            variant="contained"
+            onClick={() => {
+              refresh();
+            }}
+          >
+            REFRESH
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+/*    <Button
                 onClick={() => {
                   but1();
                 }}
@@ -646,55 +645,4 @@ function App() {
                 }}
               >
                 Weekly
-              </Button>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                width: "100%",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <p>
-                This estimate based on a 60 month loan term with an interest
-                rate of{" "}
-              </p>
-              <p style={{ fontSize: "2.5em" }}>9.95% </p>
-              <p style={{ fontSize: "1.8em" }}> p.a.</p>
-            </div>
-            <p>Disclaimer: Affordability Calculator</p>
-            <h3>
-              Your total amount $
-              {Number(totalamount.toFixed(0)) < 0 ? 0 : totalamount.toFixed(0)}
-            </h3>
-          </div>
-        </div>
-        <div className="buttondiv">
-          <Button
-            sx={button}
-            variant="contained"
-            onClick={() => {
-              calculate();
-            }}
-          >
-            CALCULATE
-          </Button>
-
-          <Button
-            sx={button}
-            variant="contained"
-            onClick={() => {
-              refresh();
-            }}
-          >
-            REFRESH
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default App;
+              </Button> */
